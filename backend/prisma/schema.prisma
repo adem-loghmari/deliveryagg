@@ -1,0 +1,121 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  BUSINESS
+}
+
+enum OrderStatus {
+  PENDING
+  DISPATCHED
+  IN_DELIVERY
+  DELIVERED
+  CANCELLED
+  RETURNED
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+}
+
+model User {
+  id                  String               @id @default(cuid())
+  email               String               @unique
+  passwordHash        String
+  role                Role                 @default(BUSINESS)
+  createdAt           DateTime             @default(now())
+  business            Business?            @relation(fields: [businessId], references: [id])
+  businessId          String?
+  passwordResetTokens PasswordResetToken[]
+}
+
+model Business {
+  id               String       @id @default(cuid())
+  name             String
+  contactName      String
+  phone            String
+  approved         Boolean      @default(false)
+  deliveryRate     Decimal      @db.Decimal(10, 3)
+  cancellationRate Decimal      @db.Decimal(10, 3)
+  createdAt        DateTime     @default(now())
+  users            User[]
+  orders           Order[]
+  invoices         Invoice[]
+  rateHistory      RateChange[]
+}
+
+model Order {
+  id             String       @id @default(cuid())
+  businessId     String
+  business       Business     @relation(fields: [businessId], references: [id])
+  recipientName  String
+  recipientPhone String
+  governorate    String
+  city           String
+  addressDetails String?
+  codAmount      Decimal      @db.Decimal(10, 3)
+  productDesc    String?
+  weightKg       Decimal?     @db.Decimal(6, 3)
+  status         OrderStatus  @default(PENDING)
+  trackingRef    String?
+  notes          String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  dispatchedAt   DateTime?
+  deliveredAt    DateTime?
+  cancelledAt    DateTime?
+  invoiceLine    InvoiceLine?
+}
+
+model Invoice {
+  id          String        @id @default(cuid())
+  businessId  String
+  business    Business      @relation(fields: [businessId], references: [id])
+  month       Int
+  year        Int
+  totalAmount Decimal       @db.Decimal(10, 3)
+  status      InvoiceStatus @default(PENDING)
+  generatedAt DateTime      @default(now())
+  paidAt      DateTime?
+  lines       InvoiceLine[]
+
+  @@unique([businessId, month, year])
+}
+
+model InvoiceLine {
+  id        String  @id @default(cuid())
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id])
+  orderId   String  @unique
+  order     Order   @relation(fields: [orderId], references: [id])
+  type      String
+  rate      Decimal @db.Decimal(10, 3)
+}
+
+model RateChange {
+  id               String   @id @default(cuid())
+  businessId       String
+  business         Business @relation(fields: [businessId], references: [id])
+  deliveryRate     Decimal  @db.Decimal(10, 3)
+  cancellationRate Decimal  @db.Decimal(10, 3)
+  changedAt        DateTime @default(now())
+  changedBy        String
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
