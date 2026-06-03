@@ -5,6 +5,9 @@ import 'dotenv/config'
 export default defineConfig({
   earlyAccess: true,
   schema: 'prisma/schema.prisma',
+  datasource: {
+    url: process.env.DATABASE_URL!,
+  },
   migrate: {
     adapter: () => new PrismaPg({ connectionString: process.env.DATABASE_URL! }),
   },
