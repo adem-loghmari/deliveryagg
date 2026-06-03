@@ -44,6 +44,17 @@ export async function updateOrderStatus(id: string, status: string, trackingRef?
   }
 }
 
+export async function deleteOrder(id: string): Promise<{ error?: string }> {
+  await verifySession()
+  try {
+    await apiClient(`/api/orders/${id}`, { method: 'DELETE' })
+    revalidatePath('/admin/orders')
+    return {}
+  } catch (e: unknown) {
+    return { error: e instanceof Error ? e.message : 'Failed to delete order' }
+  }
+}
+
 export async function bulkUpdateStatus(orderIds: string[], status: string, trackingRef?: string): Promise<{ updated?: number; error?: string }> {
   await verifySession()
   try {
