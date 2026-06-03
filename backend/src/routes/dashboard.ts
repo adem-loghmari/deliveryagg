@@ -52,7 +52,8 @@ router.get('/admin', requireRole('ADMIN'), async (req: AuthRequest, res: Respons
     const revenue = delivered * dr + cancelled * cr
     return { id: b.id, name: b.name, totalOrders: b._count.orders, monthDelivered: delivered, monthCancelled: cancelled, monthRevenue: revenue, monthMargin: revenue - (delivered * config.platformDeliveryCost + cancelled * config.platformCancellationCost) }
   })
-  res.json({ all: toMap(allStatuses), thisPeriod: toMap(periodStatuses), totalRevenue: perBusiness.reduce((s, b) => s + b.monthRevenue, 0), totalMargin: perBusiness.reduce((s, b) => s + b.monthMargin, 0), perBusiness, month, year })
+  type Row = (typeof perBusiness)[0]
+  res.json({ all: toMap(allStatuses), thisPeriod: toMap(periodStatuses), totalRevenue: perBusiness.reduce((s: number, b: Row) => s + b.monthRevenue, 0), totalMargin: perBusiness.reduce((s: number, b: Row) => s + b.monthMargin, 0), perBusiness, month, year })
 })
 
 export default router

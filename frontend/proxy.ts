@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { decrypt } from './lib/session'
+import { decrypt } from './lib/session-crypto'
 
 const PUBLIC = ['/login', '/register', '/track', '/forgot-password', '/reset-password']
 

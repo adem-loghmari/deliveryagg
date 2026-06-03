@@ -30,3 +30,16 @@ export async function logout() {
   await deleteSession()
   redirect('/login')
 }
+
+export async function changePassword(currentPassword: string, newPassword: string): Promise<{ error?: string } | undefined> {
+  const { apiClient } = await import('@/lib/api-client')
+  try {
+    await apiClient('/api/auth/change-password', {
+      method: 'PATCH',
+      body: JSON.stringify({ currentPassword, newPassword }),
+    })
+    return undefined
+  } catch (e: unknown) {
+    return { error: e instanceof Error ? e.message : 'Failed to change password' }
+  }
+}

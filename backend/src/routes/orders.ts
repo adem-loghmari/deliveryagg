@@ -75,7 +75,8 @@ router.get('/export/csv', requireRole('ADMIN'), async (req: AuthRequest, res: Re
   const orders = await prisma.order.findMany({ where, orderBy: { createdAt: 'desc' }, include: { business: { select: { name: true } } }, take: 10000 })
   const esc = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`
   const headers = ['ID','Business','Recipient','Phone','Governorate','City','COD','Status','Tracking','Created']
-  const rows = orders.map((o) => [o.id, (o as typeof o & { business?: { name: string } }).business?.name ?? '', o.recipientName, o.recipientPhone, o.governorate, o.city, o.codAmount.toString(), o.status, o.trackingRef ?? '', o.createdAt.toISOString()].map(esc).join(','))
+  type ExportOrder = typeof orders[0] & { business?: { name: string } }
+  const rows = orders.map((o: ExportOrder) => [o.id, o.business?.name ?? '', o.recipientName, o.recipientPhone, o.governorate, o.city, o.codAmount.toString(), o.status, o.trackingRef ?? '', o.createdAt.toISOString()].map(esc).join(','))
   res.setHeader('Content-Type', 'text/csv')
   res.setHeader('Content-Disposition', `attachment; filename="orders-${Date.now()}.csv"`)
   res.send([headers.join(','), ...rows].join('\n'))
